@@ -9,7 +9,7 @@ namespace TideApi.Controllers;
 public class TidesController(ITideService tideService) : ControllerBase
 {
     [HttpGet("turning-points")]
-    public async Task<ActionResult<List<TideTurningPoint>>> GetTideTurningPoints(
+    public async Task<ActionResult<GetTurningPointsResponse>> GetTideTurningPoints(
         [FromQuery] DateTimeOffset start, [FromQuery] DateTimeOffset end)
     {
         try

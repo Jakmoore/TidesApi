@@ -6,7 +6,7 @@ namespace TideApi.Services;
 
 public class TideService(ILogger<TideService> logger, IOpenWatersClient openWatersClient) : ITideService
 {
-    public async Task<List<TideTurningPoint>> GetTideTurningPoints(DateTimeOffset start, DateTimeOffset end)
+    public async Task<GetTurningPointsResponse> GetTideTurningPoints(DateTimeOffset start, DateTimeOffset end)
     {
         var tidePoints = await GetTidePoints(start, end);
         var turningPoints = GetTurningPoints([.. tidePoints]);
@@ -23,7 +23,7 @@ public class TideService(ILogger<TideService> logger, IOpenWatersClient openWate
             }
         }
 
-        return turningPoints;
+        return new GetTurningPointsResponse(turningPoints);
     }
 
     public async Task<TideState> GetTideAtTime(DateTimeOffset requestedTime)

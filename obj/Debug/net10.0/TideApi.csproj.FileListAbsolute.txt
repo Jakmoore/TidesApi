@@ -26,3 +26,4 @@
 /Users/jakmoore/Documents/VSCode Projects/TideApi/obj/Debug/net10.0/TideApi.pdb
 /Users/jakmoore/Documents/VSCode Projects/TideApi/obj/Debug/net10.0/TideApi.genruntimeconfig.cache
 /Users/jakmoore/Documents/VSCode Projects/TideApi/obj/Debug/net10.0/ref/TideApi.dll
+/Users/jakmoore/Documents/VSCode Projects/TideApi/obj/Debug/net10.0/TideApi.sourcelink.json
