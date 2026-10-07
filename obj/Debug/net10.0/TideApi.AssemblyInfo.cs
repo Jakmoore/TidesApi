@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TideApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f4989471ccaf6927d002e9f6052b9b485212c7c1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+96d93ee946d8dbd761ab79a307d0ee7cb66f12b9")]
 [assembly: System.Reflection.AssemblyProductAttribute("TideApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TideApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

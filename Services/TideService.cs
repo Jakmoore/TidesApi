@@ -6,6 +6,36 @@ namespace TideApi.Services;
 
 public class TideService(ILogger<TideService> logger, IOpenWatersClient openWatersClient) : ITideService
 {
+    // Hard code for now, maybe becomes config?
+    private static readonly double _crossingThreshold = 3.7;
+
+    public async Task<GetThresholdCrossingsResponse> GetThresholdCrossings(DateTimeOffset start, DateTimeOffset end)
+    {
+        var tidePoints = await GetTidePoints(start, end);
+        var turningPoints = GetTurningPoints([.. tidePoints]);
+
+        List<DateTimeOffset> crossingTimes = [];
+
+        for (int i = 0; i < turningPoints.Count - 1; i++)
+        {
+            // Get time here to returns
+            if (GetThresholdCrossingTime(turningPoints[i], turningPoints[i + 1]) is DateTimeOffset crossingTime)
+            {
+                crossingTimes.Add(crossingTime);
+            }
+        }
+
+        return new GetThresholdCrossingsResponse(crossingTimes);
+    }
+
+    public async Task<GetCrossingStatusResponse> GetCrossingStatus(DateTimeOffset requestedTime)
+    {
+        var tideState = await GetTideAtTime(requestedTime);
+        var isSafeToCross = IsSafeToCross(tideState);
+
+        return new GetCrossingStatusResponse(tideState, isSafeToCross);
+    }
+
     public async Task<GetTurningPointsResponse> GetTideTurningPoints(DateTimeOffset start, DateTimeOffset end)
     {
         var tidePoints = await GetTidePoints(start, end);
@@ -55,7 +85,9 @@ public class TideService(ILogger<TideService> logger, IOpenWatersClient openWate
             throw new InvalidOperationException("Unable to retrieve required tide points");
         }
 
-        return new TideState(requestedTime, GetLevelAtRequestedTime(previous, next, requestedTime),
+        return new TideState(
+            requestedTime,
+            GetLevelAtRequestedTime(previous, next, requestedTime),
             IsRising(previous.Level, next.Level));
     }
 
@@ -64,10 +96,29 @@ public class TideService(ILogger<TideService> logger, IOpenWatersClient openWate
         var response = await openWatersClient.GetTidePoints(start, end);
 
         var timelineResponse = JsonSerializer.Deserialize<GetTimeLineResponse>(response) ??
-         throw new InvalidOperationException("Failed to deserialize timeline response");
+            throw new InvalidOperationException("Failed to deserialize timeline response");
 
         return timelineResponse.Timeline;
     }
+
+    private static DateTimeOffset? GetThresholdCrossingTime(TideTurningPoint previous, TideTurningPoint next)
+    {
+        if (ThresholdWasCrossed(previous.TidePoint!.Level, next.TidePoint!.Level))
+        {
+            var totalWindowMins = (next.TidePoint.Time - previous.TidePoint.Time).TotalMinutes;
+            var levelDifference = next.TidePoint.Level - previous.TidePoint.Level;
+            var previousToThreshold = _crossingThreshold - previous.TidePoint.Level;
+            var progression = previousToThreshold / levelDifference;
+            var progressionToMinutes = totalWindowMins * progression;
+
+            return previous.TidePoint.Time.AddMinutes(progressionToMinutes);
+        }
+
+        return null;
+    }
+
+    private static bool ThresholdWasCrossed(double a, double b) =>
+        _crossingThreshold >= Math.Min(a, b) && _crossingThreshold <= Math.Max(a, b);
 
     private static double GetLevelAtRequestedTime(TidePoint previous, TidePoint next, DateTimeOffset requestedTime)
     {
@@ -99,6 +150,12 @@ public class TideService(ILogger<TideService> logger, IOpenWatersClient openWate
         }
 
         return turningPoints;
+    }
+
+    private static bool IsSafeToCross(TideState tideState)
+    {
+        // Don't use <=, as = may still be unsafe
+        return tideState.Level < _crossingThreshold;
     }
 
     private static TideTurningPoint? CalculateTurningPoint(TidePoint previous, TidePoint current, TidePoint next)

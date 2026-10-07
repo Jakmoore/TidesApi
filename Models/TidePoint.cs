@@ -9,7 +9,4 @@ public class TidePoint
 
     [JsonPropertyName("level")]
     public double Level { get; set; }
-
-    [JsonPropertyName("hour")]
-    public double Hour { get; set; }
 }
